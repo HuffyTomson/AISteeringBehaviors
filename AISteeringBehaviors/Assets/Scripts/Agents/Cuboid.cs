@@ -1,17 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(Rigidbody))]
 public class Cuboid : MonoBehaviour
 {  
-    public Stats stats;
     private StateMachine<Cuboid> sm;
-    public Rigidbody rig;
+    public Vehicle vehicle;
 
-	void Awake ()
+    void Awake ()
     {
-        rig = GetComponent<Rigidbody>();
-        stats = new Stats(100.0f, 1.0f, 5, 0.5f, 100.0f, 100.0f);
+        vehicle = new Vehicle(new Stats(100.0f, 1.0f, 5, 0.5f, 100.0f, 100.0f));
         sm = new StateMachine<Cuboid>(new CuboidWander(this));
 	}
 	
@@ -19,28 +16,24 @@ public class Cuboid : MonoBehaviour
     {
         if (sm != null)
         {
+            UpdateVehicle();
             sm.Update();
         }
     }
 
-    public void LookAt(Vector3 _target)
+    void UpdateVehicle()
     {
-        Vector3 lookTarget = Vector3.Normalize(_target - transform.position);
-        Quaternion lookRotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(lookTarget), stats.TurnSpeed);
-        
-        transform.rotation = Quaternion.Lerp(transform.rotation, lookRotation, 0.2f);
-    }
+        vehicle.Update(Time.deltaTime);
 
-    public void AddForce(Vector3 _direction)
-    {
-        rig.AddForce(_direction.normalized * stats.Speed);
+        transform.position = vehicle.Position;
+        transform.rotation = Quaternion.LookRotation(vehicle.Velocity.normalized, Vector3.up);
     }
 }
 
 
 public class Vehicle
 {
-    //private SteeringThing steering;
+    private SteeringBehaviors steering;
     
     public Stats stats = new Stats(10,10,10,10,10,10);
 
@@ -54,22 +47,28 @@ public class Vehicle
     public Vector3 Velocity { get { return velocity; } }
     public Vector3 Position { get { return position; } }
 
-    void Update(float timeElapsed)
+    public Vehicle(Stats _stats)
+    {
+        stats = _stats;
+        steering = new SteeringBehaviors(this);
+    }
+
+    public void Update(float timeElapsed)
     {
         // add all forces together
-        //Vector3 steeringForce = steering.Calculate();
+        Vector3 steeringForce = steering.Calculate();
 
         //Acceleration = Force/Mass
-        //Vector3 acceleration = steeringForce / stat.smass;
+        Vector3 acceleration = steeringForce / stats.Mass;
 
         //update velocity
-        //velocity += acceleration * timeElapsed;
+        velocity += acceleration * timeElapsed;
 
         //make sure vehicle does not exceed maximum velocity
-        //velocity.ClampMagnitude(stats.Speed);
+        velocity = Vector3.ClampMagnitude(velocity, stats.Speed);
 
         //update the position
-        //m_vPos += m_vVelocity * time_elapsed;
+        position += velocity * timeElapsed;
 
         //update the heading if the vehicle has a velocity greater than a very small
         //value
@@ -84,11 +83,25 @@ public class Vehicle
 public class SteeringBehaviors
 {
     Vehicle vehicle;
+    private float maxForce = 10;
 
     public SteeringBehaviors(Vehicle _vehicle)
     {
         vehicle = _vehicle;
     }
+
+    public Vector3 Calculate()
+    {
+        Vector3 force = Vector3.zero;
+
+        //force += 
+        force += Vector3.one;
+
+        force = Vector3.ClampMagnitude(force, maxForce);
+        return force;
+    }
+
+
 
     Vector3 Seek(Vector3 _targetPos)
     {

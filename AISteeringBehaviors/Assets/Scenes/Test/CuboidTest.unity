@@ -325,7 +325,6 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 1634619915}
-  - 54: {fileID: 1634619917}
   - 114: {fileID: 1634619916}
   m_Layer: 0
   m_Name: Cuboid
@@ -358,22 +357,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca70c5ba289eea3418bd6120456aa117, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rig: {fileID: 0}
---- !u!54 &1634619917
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1634619914}
-  serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 1
-  m_AngularDrag: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &2087193618
 GameObject:
   m_ObjectHideFlags: 0
