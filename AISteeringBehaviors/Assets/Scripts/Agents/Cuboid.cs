@@ -6,9 +6,19 @@ public class Cuboid : MonoBehaviour
     private StateMachine<Cuboid> sm;
     public Vehicle vehicle;
 
+    void OnEnable()
+    {
+        CuboidManager.AddToList(this);
+    }
+
+    void OnDisable()
+    {
+        CuboidManager.RemoveFromList(this);
+    }
+
     void Awake ()
     {
-        vehicle = new Vehicle(new Stats(100.0f, 1.0f, 5, 0.5f, 100.0f, 100.0f));
+        vehicle = new Vehicle(new Stats(100.0f, 1.0f, 5.0f, 0.5f, 100.0f, 100.0f), transform.position);
         sm = new StateMachine<Cuboid>(new CuboidWander(this));
 	}
 	
@@ -16,8 +26,8 @@ public class Cuboid : MonoBehaviour
     {
         if (sm != null)
         {
-            UpdateVehicle();
             sm.Update();
+            UpdateVehicle();
         }
     }
 
@@ -26,7 +36,7 @@ public class Cuboid : MonoBehaviour
         vehicle.Update(Time.deltaTime);
 
         transform.position = vehicle.Position;
-        transform.rotation = Quaternion.LookRotation(vehicle.Velocity.normalized, Vector3.up);
+        transform.rotation = Quaternion.LookRotation(vehicle.Forward, Vector3.Cross(vehicle.Right,vehicle.Forward).normalized);
     }
 }
 
@@ -34,8 +44,8 @@ public class Cuboid : MonoBehaviour
 public class Vehicle
 {
     private SteeringBehaviors steering;
-    
-    public Stats stats = new Stats(10,10,10,10,10,10);
+
+    public Stats stats;
 
     private Vector3 forward;
     private Vector3 right;
@@ -47,13 +57,14 @@ public class Vehicle
     public Vector3 Velocity { get { return velocity; } }
     public Vector3 Position { get { return position; } }
 
-    public Vehicle(Stats _stats)
+    public Vehicle(Stats _stats, Vector3 _position)
     {
         stats = _stats;
+        position = _position;
         steering = new SteeringBehaviors(this);
     }
 
-    public void Update(float timeElapsed)
+    public void Update(float _timeElapsed)
     {
         // add all forces together
         Vector3 steeringForce = steering.Calculate();
@@ -62,13 +73,13 @@ public class Vehicle
         Vector3 acceleration = steeringForce / stats.Mass;
 
         //update velocity
-        velocity += acceleration * timeElapsed;
+        velocity += acceleration * _timeElapsed;
 
         //make sure vehicle does not exceed maximum velocity
         velocity = Vector3.ClampMagnitude(velocity, stats.Speed);
 
         //update the position
-        position += velocity * timeElapsed;
+        position += velocity * _timeElapsed;
 
         //update the heading if the vehicle has a velocity greater than a very small
         //value
@@ -95,13 +106,10 @@ public class SteeringBehaviors
         Vector3 force = Vector3.zero;
 
         //force += 
-        force += Vector3.one;
-
+        force += Wander();
         force = Vector3.ClampMagnitude(force, maxForce);
         return force;
     }
-
-
 
     Vector3 Seek(Vector3 _targetPos)
     {
@@ -188,6 +196,20 @@ public class SteeringBehaviors
         float lookAheadTime = toPursuer.magnitude / (vehicle.stats.Speed + _pursuer.Velocity.magnitude);
         //now flee away from predicted future position of the pursuer
         return Flee(_pursuer.Position + _pursuer.Velocity * lookAheadTime);
+    }
+
+
+    float wanderAmt = 10;
+    Vector3 wanderVec = Vector3.zero;
+
+    Vector3 Wander()
+    {
+        wanderVec *= 0.75f;
+        wanderVec += Random.onUnitSphere * 0.5f;
+        wanderVec = wanderVec.normalized;
+        Vector3 wanderForce = wanderVec;
+
+        return wanderForce.normalized * vehicle.stats.Speed;
     }
 
     //float wanderRadius;
