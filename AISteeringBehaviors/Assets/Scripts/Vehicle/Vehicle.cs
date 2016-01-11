@@ -2,14 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Vehicle2D
+public class Vehicle
 {
-
-    // need to have a 2d rigidbody for steering behavior
-    //[RequireComponent (typeof (Rigidbody2D))]
-
     private GameObject obj;
     public GameObject Obj { get { return obj; } }
+
+    public Rigidbody rig;
 
     [HideInInspector]
     public  Vector3 velocity;
@@ -61,22 +59,23 @@ public class Vehicle2D
     // ...
     
     //the steering behavior class
-    public SteeringBehavior2D steeringBehavior;
+    public SteeringBehavior steeringBehavior;
     
-    public Vehicle2D(GameObject thisObj)
+    public Vehicle(GameObject _thisObj)
     {
-        obj = thisObj;
-        steeringBehavior = new SteeringBehavior2D(this);
+        obj = _thisObj;
+        rig = obj.GetComponent<Rigidbody>();
+        steeringBehavior = new SteeringBehavior(this);
     }
     
     public void Update () 
     {
         // hold current velocity, postion, and heading for use in steeringBehavior
-        velocity = Obj.GetComponent<Rigidbody2D>().velocity;
+        velocity = rig.velocity;
         position = Obj.transform.position;
-        heading = Obj.transform.right;
+        heading = Obj.transform.forward;
         // debug facing
-        Debug.DrawLine(Obj.transform.position, Obj.transform.position + heading);
+        Debug.DrawLine(Obj.transform.position, Obj.transform.position + heading * 2);
         // turn to face movment vector
         FaceHeading();
         // accelerate to target
@@ -84,24 +83,26 @@ public class Vehicle2D
         if (steeringForce.magnitude > 0.1f)
         {
             steeringTarget = new Vector2(steeringForce.x, steeringForce.y).normalized;
-            Obj.GetComponent<Rigidbody2D>().AddForce(steeringTarget * acceleration * Time.deltaTime);
+            rig.AddForce(steeringTarget * acceleration * Time.deltaTime);
             // clamp speed
-            Obj.GetComponent<Rigidbody2D>().velocity = Vector3.ClampMagnitude(Obj.GetComponent<Rigidbody2D>().velocity, maxSpeed);
+            rig.velocity = Vector3.ClampMagnitude(rig.velocity, maxSpeed);
         }
 	 }
-    
+     
      void SetTargetToPlayer()
      {
          target = (GameObject.Find("player") as GameObject).transform;
      }
-    
-    // rotate to face target
-    void FaceHeading()
-    {
-        Vector3 newLookPos = (new Vector3(Obj.GetComponent<Rigidbody2D>().velocity.x, Obj.GetComponent<Rigidbody2D>().velocity.y, 0) + Obj.transform.position) - Obj.transform.position;
-        lookPos = Vector3.Lerp(lookPos, newLookPos, Time.deltaTime * turnRate);
-        float angle = Mathf.Atan2(lookPos.y, lookPos.x) * Mathf.Rad2Deg;
-        Obj.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-    }
+     
+     // rotate to face target
+     void FaceHeading()
+     {
+        //Vector3 newLookPos = (new Vector3(rig.velocity.x, rig.velocity.y, 0) + Obj.transform.position) - Obj.transform.position;
+        //lookPos = Vector3.Lerp(lookPos, newLookPos, Time.deltaTime * turnRate);
+        //float angle = Mathf.Atan2(lookPos.y, lookPos.x) * Mathf.Rad2Deg;
+        //Obj.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        
+        Obj.transform.rotation = Quaternion.Lerp(Obj.transform.rotation, Quaternion.LookRotation(rig.velocity), Time.deltaTime * turnRate);
+     }
       
 }

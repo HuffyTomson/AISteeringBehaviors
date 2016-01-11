@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Rigidbody))]
 public class Cuboid : MonoBehaviour
 {  
     private StateMachine<Cuboid> sm;
-    public Vehicle2D vehicle;
-
+    public Vehicle vehicle;
+    
     void OnEnable()
     {
         CuboidManager.AddToList(this);
@@ -19,7 +19,7 @@ public class Cuboid : MonoBehaviour
 
     void Awake ()
     {
-        vehicle = new Vehicle2D(this.gameObject);
+        vehicle = new Vehicle(this.gameObject);
         sm = new StateMachine<Cuboid>(new CuboidWander(this));
 	}
 	

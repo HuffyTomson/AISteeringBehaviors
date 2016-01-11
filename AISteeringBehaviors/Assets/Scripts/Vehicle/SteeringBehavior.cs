@@ -2,11 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class SteeringBehavior2D
+public class SteeringBehavior
 {
 
     // calling Vehicle
-    private Vehicle2D vehicle;
+    private Vehicle vehicle;
     
     // hold wander target
     Vector3 wanderTarget;
@@ -45,14 +45,13 @@ public class SteeringBehavior2D
         // ...
     }
     
-    public SteeringBehavior2D(Vehicle2D v)
+    public SteeringBehavior(Vehicle v)
     {
         vehicle = v;
        
         // get random postion on wander circle
         float theta = Random.Range(0.0f,1.0f) * (Mathf.PI*2);
         wanderTarget = new Vector3(vehicle.wanderRadius * Mathf.Cos(theta), vehicle.wanderRadius * Mathf.Sign(theta));
-        
     }
     
     // seek //
@@ -75,7 +74,7 @@ public class SteeringBehavior2D
         
         if (dist > 0.5f)
         {
-            float speed = dist / vehicle.Obj.GetComponent<Rigidbody2D>().drag;
+            float speed = dist / vehicle.rig.drag;
             
             if (speed > vehicle.maxSpeed)
                speed = vehicle.maxSpeed;
@@ -99,11 +98,8 @@ public class SteeringBehavior2D
     public Vector3 Pursuit(Transform evader)
     {
         float distToTarget = Vector3.Distance(evader.position, vehicle.position);
-        
-        float lookAhead = distToTarget / (vehicle.maxSpeed + evader.GetComponent<Rigidbody2D>().velocity.magnitude);
-        
-        Vector3 targetVelocity = new Vector3(evader.GetComponent<Rigidbody2D>().velocity.x, evader.GetComponent<Rigidbody2D>().velocity.y, 0);
-        
+        float lookAhead = distToTarget / (vehicle.maxSpeed + evader.GetComponent<Rigidbody>().velocity.magnitude);
+        Vector3 targetVelocity = new Vector3(evader.GetComponent<Rigidbody2D>().velocity.x, evader.GetComponent<Rigidbody>().velocity.y, 0);
         return Seek(evader.position + targetVelocity * lookAhead);
     }
     
@@ -111,11 +107,8 @@ public class SteeringBehavior2D
     public Vector3 Evade(Transform pursuer)
     {
         float distToTarget = Vector3.Distance(pursuer.position, vehicle.position);
-        
-        float lookAhead = distToTarget / (vehicle.maxSpeed + pursuer.GetComponent<Rigidbody2D>().velocity.magnitude);
-        
-        Vector3 targetVelocity = new Vector3(pursuer.GetComponent<Rigidbody2D>().velocity.x, pursuer.GetComponent<Rigidbody2D>().velocity.y, 0);
-        
+        float lookAhead = distToTarget / (vehicle.maxSpeed + pursuer.GetComponent<Rigidbody>().velocity.magnitude);
+        Vector3 targetVelocity = new Vector3(pursuer.GetComponent<Rigidbody>().velocity.x, pursuer.GetComponent<Rigidbody>().velocity.y, 0);
         return Flee(pursuer.position + targetVelocity * lookAhead);
     }
     
@@ -181,7 +174,7 @@ public class SteeringBehavior2D
         {
            return Arrive(bestHidingSpot);
         }
-         */
+        //*/
         
     }
     
@@ -314,9 +307,10 @@ public class SteeringBehavior2D
         // ...
         // ...
         
-        if (steeringTarget.magnitude < 1)
+        if (steeringTarget.magnitude < 0.0001f)
             return Vector3.zero;
         else
-            return steeringTarget.normalized;
+            return Vector3.ClampMagnitude(steeringTarget, 1);
+            //return steeringTarget.normalized;
     }
 }
