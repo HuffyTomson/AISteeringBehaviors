@@ -11,6 +11,8 @@ public class CuboidWander : State<Cuboid>
 
     public override void Enter()
     {
+        owner.vehicle.steeringBehavior.wander = true;
+        owner.vehicle.wanderWeight = 1.0f;
     }
 
     public override void Exit()
